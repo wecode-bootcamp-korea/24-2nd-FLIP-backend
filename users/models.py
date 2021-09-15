@@ -3,7 +3,7 @@ from django.db   import models
 
 class User(TimeStampModel, SoftDeleteModel):
     kakao_id        = models.IntegerField(unique=True)
-    email           = models.EmailField(max_length=250, null=True, unique=True)
+    email           = models.EmailField(max_length=500, null=True, unique=True)
     password        = models.CharField(max_length=2000, null=True)
     nickname        = models.CharField(max_length=100)
     image_url       = models.URLField(null=True)
