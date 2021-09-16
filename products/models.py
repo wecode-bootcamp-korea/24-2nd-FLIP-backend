@@ -21,7 +21,8 @@ class SubCategory(TimeStampModel):
         db_table = 'sub_categories'
 
 class MainCategory(TimeStampModel):
-    name = models.CharField(max_length=50)
+    name      = models.CharField(max_length=50)
+    image_url = models.URLField(null=True)
 
     class Meta:
         db_table = 'main_categories'
