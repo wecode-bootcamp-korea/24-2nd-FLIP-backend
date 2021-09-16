@@ -6,9 +6,9 @@ from products.models import Product
 from core.models     import TimeStampModel
 
 class Order(TimeStampModel):
-    order_status_id   = models.ForeignKey('OrderStatus', null=True, on_delete=models.SET_NULL)
-    final_price       = models.DecimalField(max_digits=13, decimal_places=3)
-    user_id           = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    order_status = models.ForeignKey('OrderStatus', null=True, on_delete=models.SET_NULL)
+    final_price  = models.DecimalField(max_digits=13, decimal_places=3)
+    user         = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         db_table = 'orders'
@@ -20,16 +20,16 @@ class OrderStatus(TimeStampModel):
         db_table = 'order_status'
 
 class OrderItem(TimeStampModel):
-    order_id   = models.ForeignKey('Order', on_delete=models.CASCADE)
-    product_id = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity   = models.IntegerField
+    order    = models.ForeignKey('Order', on_delete=models.CASCADE)
+    product  = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.IntegerField
 
     class Meta:
         db_table = 'order_items'
     
 class Payment(TimeStampModel):
-    order_id     = models.ForeignKey('Order', on_delete=models.CASCADE)
-    method_id    = models.ForeignKey('Method', null=True, on_delete=SET_NULL)
+    order        = models.ForeignKey('Order', on_delete=models.CASCADE)
+    method       = models.ForeignKey('Method', null=True, on_delete=SET_NULL)
     final_amount = models.DecimalField(max_digits=13, decimal_places=3, null=True)
     status       = models.CharField(max_length=50, default='ready')
 
