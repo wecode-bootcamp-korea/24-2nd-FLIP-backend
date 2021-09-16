@@ -4,11 +4,12 @@ from django.db    import models
 from users.models import User
 
 class Product(TimeStampModel):
-    title           = models.CharField(max_length=50)
-    price           = models.DecimalField(max_digits=13, decimal_places=3)
-    dicount_percent = models.DecimalField(max_digits=6, decimal_places=3)
-    sub_category_id = models.ForeignKey('SubCategory', null=True, on_delete=models.SET_NULL)
-    description     = models.TextField()
+    title            = models.CharField(max_length=50)
+    price            = models.DecimalField(max_digits=13, decimal_places=3)
+    discount_percent = models.DecimalField(max_digits=6, decimal_places=3)
+    sub_category_id  = models.ForeignKey('SubCategory', null=True, on_delete=models.SET_NULL)
+    description      = models.TextField()
+    user_id          = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'products'
