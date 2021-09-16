@@ -3,8 +3,6 @@ from pathlib     import Path
 
 from my_settings import DATABASES, SECRET_KEY,AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY 
 
-
-
 # import pymysql
 
 # pymysql.install_as_MySQLdb()
@@ -41,6 +39,7 @@ INSTALLED_APPS = [
     'products',
     'orders',
     'storages',
+    'jwt',
 ]
 
 MIDDLEWARE = [
@@ -172,3 +171,4 @@ DEFAULT_FILE_STORAGE = 'core.storages.MediaStorage'
 STATICFILES_STORAGE = 'core.storages.StaticStorage'
 MEDIAFILES_LOCATION = 'media'
 STATICFILES_LOCATION = 'static'
+

@@ -1,5 +1,10 @@
-from products.models import MainCategory, SubCategory
-from django.test import TestCase, Client
+import jwt
+from products.models  import MainCategory, SubCategory
+from django.test      import TestCase, Client
+from django.conf      import settings
+
+from .models          import Product, Review, ProductImage, UserLike
+from users.models     import User
 
 class MainCategoryTest(TestCase):
     def setUp(self):
@@ -44,4 +49,198 @@ class MainCategoryTest(TestCase):
             )
             self.assertEqual(response.status_code, 404)
 
+class ProductDetailTest(TestCase):
+    @classmethod					
+    def setUpTestData(cls):				
+        user = User.objects.create(
+            id        = 3,
+            kakao_id  = 3,
+            nickname  = "dongpalli",
+            image_url = "www.dk.com"
+        )
+        user2 = User.objects.create(
+            id        = 4,
+            kakao_id  = 4,
+            nickname  = "dongpalli",
+            image_url = "www.dk.com"
+        )
+        product = Product.objects.create(
+            id               = 3,
+            title            = "필라테스 강습",
+            price            = 100,
+            discount_percent = 10,
+            description      = "그냥 사",
+            user             = user
+        )
+        product2 = Product.objects.create(
+            id               = 4,
+            title            = "촬영 강습",
+            price            = 100,
+            discount_percent = 10,
+            description      = "그냥 사세요",
+            user             = user2
+        )    
+        reviews = Review.objects.create(
+            rating  = 5.0,
+            comment = "좋아 죽어요",
+            user    = user,
+            product = product
+        )
+        product_image = ProductImage.objects.create(
+            image_url = "hello",
+            product   = product
+        )
+        like = UserLike.objects.create(
+            id      = 1,
+            user    = user,
+            product = product
+        )
+    def test_product_detail_get_token_not_found_fail(self):
+        client       = Client()
+        # given
+        access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization": access_token}
+        # when
+        response = client.get('/product/0', **headers)
+        # then 
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json(), {'MESSAGE':'NOT_FOUND'})
+
+    def test_product_detail_get_none_token_not_found_fail(self):
+        client       = Client()
+        # when
+        response = client.get('/product/0')
+        # then 
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json(), {'MESSAGE':'NOT_FOUND'})
+
+    def test_product_detail_get_token_like_true_success(self):
+        client       = Client()
+        # given
+        access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization": access_token}
+        # when 
+        response = client.get('/product/3', **headers)
+        #then
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(),
+            {
+                "result": {
+                    "user": {
+                        "id"            : 3,
+                        "name"          : "dongpalli",
+                        "image"         : "www.dk.com",
+                        "product_count" : 1,
+                        "review_count"  : 1
+                    },
+                    "id"               : 3,
+                    "title"            : "필라테스 강습",
+                    "price"            : 100,
+                    "image"            : ['https://flip-back.s3.ap-northeast-2.amazonaws.com/media/hello'],
+                    "discounted_price" : 90,
+                    "discount_percent" : 10,
+                    "description"      : "그냥 사",
+                    "is_liked"         : True
+                }   
+            }
+        )
+    def test_product_detail_get_token_like_false_success(self):
+        client       = Client()
+        # given
+        access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization": access_token}
+        # when 
+        response = client.get('/product/4', **headers)
+        #then
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(),
+            {
+                "result": {
+                    "user": {
+                        "id"            : 4,
+                        "name"          : "dongpalli",
+                        "image"         : "www.dk.com",
+                        "product_count" : 1,
+                        "review_count"  : 0
+                    },
+                    "id"               : 4,
+                    "title"            : "촬영 강습",
+                    "price"            : 100,
+                    "image"            : [],
+                    "discounted_price" : 90,
+                    "discount_percent" : 10,
+                    "description"      : "그냥 사세요",
+                    "is_liked"         : False
+                }   
+            }
+        )
+
+    def test_product_detail_get_none_token_success(self):
+        client       = Client()
+        # when 
+        response = client.get('/product/3')
+        #then
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(),
+            {
+                "result": {
+                    "user": {
+                        "id"            : 3,
+                        "name"          : "dongpalli",
+                        "image"         : "www.dk.com",
+                        "product_count" : 1,
+                        "review_count"  : 1
+                    },
+                    "id"               : 3,
+                    "title"            : "필라테스 강습",
+                    "price"            : 100,
+                    "image"            : ['https://flip-back.s3.ap-northeast-2.amazonaws.com/media/hello'],
+                    "discounted_price" : 90,
+                    "discount_percent" : 10,
+                    "description"      : "그냥 사",
+                    "is_liked"         : False
+                }   
+            }
+        )
+
+    def test_product_detail_get_token_user_not_exist_success(self):
+        client       = Client()
+        # given
+        access_token = jwt.encode({'id' : 5}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization": access_token}
+        # when 
+        response = client.get('/product/3', **headers)
+        #then
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(),
+            {
+                "result": {
+                    "user": {
+                        "id"            : 3,
+                        "name"          : "dongpalli",
+                        "image"         : "www.dk.com",
+                        "product_count" : 1,
+                        "review_count"  : 1
+                    },
+                    "id"               : 3,
+                    "title"            : "필라테스 강습",
+                    "price"            : 100,
+                    "image"            : ['https://flip-back.s3.ap-northeast-2.amazonaws.com/media/hello'],
+                    "discounted_price" : 90,
+                    "discount_percent" : 10,
+                    "description"      : "그냥 사",
+                    "is_liked"         : False
+                }   
+            }
+        )
+
+    def test_product_detail_get_token_decode_error_fail(self):
+        client       = Client()
+        # given
+        headers      = {"HTTP_Authorization": "fake_token"}
+        # when
+        response = client.get('/product/3', **headers)
+        # then 
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(), {'MESSAGE':'WRONG_ACCESS'})
 
