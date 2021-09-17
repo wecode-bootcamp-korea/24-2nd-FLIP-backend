@@ -14,7 +14,7 @@ class User(TimeStampModel, SoftDeleteModel):
         db_table = 'users'
 
 class BankAccount(TimeStampModel):
-    account_number = models.IntegerField()
+    account_number = models.CharField(max_length=100)
     bank           = models.ForeignKey('Bank', on_delete=models.PROTECT)
     account_holder = models.CharField(max_length=100)
 
