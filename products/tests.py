@@ -1,11 +1,12 @@
 import jwt
+import json
 
-from products.models  import MainCategory, SubCategory, Product, UserLike, Review, ReviewImage
 from django.test      import TestCase, Client
 from django.conf      import settings
 
-from .models          import Product, Review, ProductImage, UserLike
-from users.models     import User
+from products.models  import MainCategory, Product, SubCategory, ProductImage, Location, GatherLocation, Review, UserLike, ReviewImage
+from users.models     import User, Bank, BankAccount
+
 
 class MainCategoryTest(TestCase):
     def setUp(self):
@@ -32,7 +33,7 @@ class MainCategoryTest(TestCase):
             {
                 "sub_category_list" : [
                     {
-                        "sub_category_id" : 1,
+                        "sub_category_id"   : 1,
                         "sub_category_name" : "서핑"
                     }
                 ]
@@ -364,3 +365,111 @@ class CommentTest(TestCase):
             }
         )
 
+class UserProductViewTestGET(TestCase):
+    def setUp(self):
+        Bank.objects.create(
+            id   = 1,
+            name = "하나은행"
+        )
+
+        BankAccount.objects.create(
+            id             = 1,
+            account_number = "72491028234567",
+            account_holder = "멜로디",
+            bank_id        = Bank.objects.get(name="하나은행").id 
+        )
+
+        User.objects.create(
+                id              = 1,
+                kakao_id        = 123,
+                nickname        = "Melody",
+                bank_account_id = BankAccount.objects.get(id=1).id
+        )
+
+        MainCategory.objects.create(
+            id   = 1, 
+            name = "아웃도어"
+        )
+        final_price = int(float(50000) * (1 - (float(10) / 100)))
+
+        SubCategory.objects.create(
+            id               = 1, 
+            name             = "등산",
+            main_category_id = MainCategory.objects.get(name="아웃도어").id
+        )
+
+        product = Product.objects.create(
+            id               = 1,
+            title            = "건강이모임2",
+            price            = final_price,
+            discount_percent = 10,
+            sub_category_id  = SubCategory.objects.get(name="등산").id,
+            description      = "주말에 등산해요~",
+            user_id          = User.objects.get(id=1).id
+        )
+
+        Location.objects.create(
+            product_id = product.id,
+            address    = "인왕산"
+        )    
+
+        GatherLocation.objects.create(
+            product_id = product.id,
+            address    = "사직단"
+        )
+
+        ProductImage.objects.bulk_create([
+            ProductImage(
+                id         = 1,
+                product_id = product.id,
+                image_url  = "https://s3.ap-northeast-2.amazonaws.com/flip-test2/IMG_7063.JPG"
+            ),
+            ProductImage(
+                id         = 2,
+                product_id = product.id,
+                image_url  = "https://s3.ap-northeast-2.amazonaws.com/flip-test2/IMG_5081.JPG"
+            ),
+        ])
+
+    def test_user_error(self):
+            client = Client()
+            response = client.get('/products/host/4')
+            self.assertEqual(response.json(), {"ERROR": "USER_DOESN'T_EXIST"})
+            self.assertEqual(response.status_code, 404)
+
+
+    def test_user_poroduct_get_success(self):
+        client  = Client()
+        response = client.get("/products/host/1")
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(),
+            {
+                "MESSAGE" : [
+                    {
+                        "title"           : "건강이모임2",
+                        "price"           : "45000.000",
+                        "discount_percent": "10.000",
+                        "sub_category"    : "등산",
+                        "description"     : "주말에 등산해요~",
+                        "playing_location": "인왕산",
+                        "gather_location" : "사직단",
+                        "image_url"       : [
+                            "https://flip-test2.s3.ap-northeast-2.amazonaws.com/media/https%3A/s3.ap-northeast-2.amazonaws.com/flip-test2/IMG_7063.JPG",
+                            "https://flip-test2.s3.ap-northeast-2.amazonaws.com/media/https%3A/s3.ap-northeast-2.amazonaws.com/flip-test2/IMG_5081.JPG"
+                        ]
+                    }
+                ]
+            }
+        )
+
+    def tearDown(self):
+        BankAccount.objects.all().delete()
+        Bank.objects.all().delete()
+        User.objects.all().delete()
+        MainCategory.objects.all().delete()
+        SubCategory.objects.all().delete()
+        Product.objects.all().delete()
+        Location.objects.all().delete()
+        GatherLocation.objects.all().delete()
+        ProductImage.objects.all().delete()
