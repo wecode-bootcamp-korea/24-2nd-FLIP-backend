@@ -1,5 +1,5 @@
 import jwt
-from products.models  import MainCategory, SubCategory
+from products.models  import MainCategory, SubCategory, Product, UserLike
 from django.test      import TestCase, Client
 from django.conf      import settings
 
@@ -25,7 +25,7 @@ class MainCategoryTest(TestCase):
         SubCategory.objects.all().delete()
 
     def test_listcategory_get_success(self):
-        client  = Client()
+        client   = Client()
         response = client.get("/products/main_category/1")
         self.assertEqual(response.json(),
             {
@@ -40,7 +40,7 @@ class MainCategoryTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_listcategory_get_error(self):
-            client = Client()
+            client   = Client()
             response = client.get('/products/main_category/20000')
             self.assertEqual(response.json(),
                 {
@@ -96,32 +96,24 @@ class ProductDetailTest(TestCase):
             product = product
         )
     def test_product_detail_get_token_not_found_fail(self):
-        client       = Client()
-        # given
+        client       = Client()        
         access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
-        headers      = {"HTTP_Authorization": access_token}
-        # when
-        response = client.get('/product/0', **headers)
-        # then 
+        headers      = {"HTTP_Authorization": access_token}        
+        response     = client.get('/product/0', **headers)        
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json(), {'MESSAGE':'NOT_FOUND'})
 
     def test_product_detail_get_none_token_not_found_fail(self):
-        client       = Client()
-        # when
-        response = client.get('/product/0')
-        # then 
+        client       = Client()        
+        response     = client.get('/product/0')        
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json(), {'MESSAGE':'NOT_FOUND'})
 
     def test_product_detail_get_token_like_true_success(self):
-        client       = Client()
-        # given
+        client       = Client()        
         access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
-        headers      = {"HTTP_Authorization": access_token}
-        # when 
-        response = client.get('/product/3', **headers)
-        #then
+        headers      = {"HTTP_Authorization": access_token}        
+        response = client.get('/product/3', **headers) 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -140,18 +132,16 @@ class ProductDetailTest(TestCase):
                     "discounted_price" : 90,
                     "discount_percent" : 10,
                     "description"      : "그냥 사",
+                    'like_count'       : 1,
                     "is_liked"         : True
                 }   
             }
         )
     def test_product_detail_get_token_like_false_success(self):
-        client       = Client()
-        # given
+        client       = Client()        
         access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
-        headers      = {"HTTP_Authorization": access_token}
-        # when 
-        response = client.get('/product/4', **headers)
-        #then
+        headers      = {"HTTP_Authorization": access_token}        
+        response = client.get('/product/4', **headers)        
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -170,6 +160,7 @@ class ProductDetailTest(TestCase):
                     "discounted_price" : 90,
                     "discount_percent" : 10,
                     "description"      : "그냥 사세요",
+                    'like_count'       : 0,
                     "is_liked"         : False
                 }   
             }
@@ -177,9 +168,7 @@ class ProductDetailTest(TestCase):
 
     def test_product_detail_get_none_token_success(self):
         client       = Client()
-        # when 
-        response = client.get('/product/3')
-        #then
+        response     = client.get('/product/3')        
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -198,6 +187,7 @@ class ProductDetailTest(TestCase):
                     "discounted_price" : 90,
                     "discount_percent" : 10,
                     "description"      : "그냥 사",
+                    'like_count'       : 1,
                     "is_liked"         : False
                 }   
             }
@@ -205,12 +195,9 @@ class ProductDetailTest(TestCase):
 
     def test_product_detail_get_token_user_not_exist_success(self):
         client       = Client()
-        # given
         access_token = jwt.encode({'id' : 5}, settings.SECRET_KEY,algorithm='HS256')
         headers      = {"HTTP_Authorization": access_token}
-        # when 
-        response = client.get('/product/3', **headers)
-        #then
+        response = client.get('/product/3', **headers)        
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -229,18 +216,75 @@ class ProductDetailTest(TestCase):
                     "discounted_price" : 90,
                     "discount_percent" : 10,
                     "description"      : "그냥 사",
+                    'like_count'       : 1,
                     "is_liked"         : False
                 }   
             }
         )
 
     def test_product_detail_get_token_decode_error_fail(self):
-        client       = Client()
-        # given
-        headers      = {"HTTP_Authorization": "fake_token"}
-        # when
-        response = client.get('/product/3', **headers)
-        # then 
+        client       = Client()        
+        headers      = {"HTTP_Authorization": "fake_token"}        
+        response     = client.get('/product/3', **headers)        
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json(), {'MESSAGE':'WRONG_ACCESS'})
 
+class LikeTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        User.objects.bulk_create([            
+            User(id=1, kakao_id=1, nickname="palli"),
+            User(id=2, kakao_id=2, nickname="dong")
+            ])
+        product = Product.objects.create(
+            id               = 1,
+            title            = "필라테스 강습",
+            price            = 100,
+            discount_percent = 10,
+            description      = "그냥 사",
+            user_id          = 1
+        )
+        like = UserLike.objects.create(
+            id      = 2,
+            user_id = 2,
+            product = product
+        )
+    
+    def test_like_post_not_found_fail(self):
+        client = Client()
+        access_token = jwt.encode({'id' : 1}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization": access_token}
+        response     = client.post('/product/0/like', **headers)
+        self.assertEqual(response.status_code,404)
+        self.assertEqual(response.json(), {'MESSAGE' : 'NOT_FOUND'})
+
+    def test_like_post_success(self):
+        client       = Client()
+        access_token = jwt.encode({'id' : 1}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization": access_token}
+        response     = client.post('/product/1/like', **headers)
+        self.assertEqual(response.status_code,201)
+        self.assertEqual(response.json(), {'MESSAGE' : 'SUCCESS'})
+
+    def test_like_cancel_post_success(self):
+        client       = Client()        
+        access_token = jwt.encode({'id' : 2}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization": access_token}
+        response     = client.post('/product/1/like', **headers)        
+        self.assertEqual(response.status_code,201)
+        self.assertEqual(response.json(), {'MESSAGE' : 'CANCEL_LIKE'})
+
+    def test_like_does_not_exist_error_fail(self):
+        client       = Client()        
+        access_token = jwt.encode({'id' : 99}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization": access_token}        
+        response     = client.post('/product/1/like', **headers)        
+        self.assertEqual(response.status_code,401)
+        self.assertEqual(response.json(), {'MESSAGE' : 'INVALID_USER'})
+
+    def test_like_decode_error_fail(self):
+        client       = Client()        
+        headers      = {"HTTP_Authorization": "fake_token"}        
+        response     = client.post('/product/1/like', **headers)        
+        self.assertEqual(response.status_code,401)
+        self.assertEqual(response.json(), {'MESSAGE' : 'ENCODE_ERROR'}) 
