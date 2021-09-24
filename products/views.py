@@ -1,16 +1,15 @@
 
 import jwt
 import json
-from unittest.main import main
-from .models       import Product, Review, UserLike
-from users.models  import User
 
 from django.conf     import settings
 from django.http     import JsonResponse
 from django.views    import View
 from django.db.models import Count
 
-from products.models import MainCategory, SubCategory
+from products.models import MainCategory, Product, SubCategory, UserLike, Review
+from users.models  import User
+from users.decorator import login_decorator
 
 class ListCategoryView(View):
     def get(self, request, main_category_id):
@@ -81,3 +80,18 @@ class ProductDetailView(View):
 
         except Exception:
             return JsonResponse({"MESSAGE" : "WRONG_ACCESS"}, status=401)   
+
+class LikeView(View):
+    @login_decorator
+    def post(self, request, product_id):
+
+        if not Product.objects.filter(id=product_id):
+            return JsonResponse({'MESSAGE' : 'NOT_FOUND'}, status=404)
+
+        if UserLike.objects.filter(user=request.user,product_id=product_id).exists():
+            UserLike.objects.filter(user=request.user,product_id=product_id).delete()
+            return JsonResponse({'MESSAGE' : 'CANCEL_LIKE'}, status=201)
+        
+        UserLike.objects.create(user=request.user, product_id=product_id)
+        return JsonResponse({'MESSAGE' : 'SUCCESS'}, status=201)
+
