@@ -1,5 +1,6 @@
 import jwt
-from products.models  import MainCategory, SubCategory, Product, UserLike
+
+from products.models  import MainCategory, SubCategory, Product, UserLike, Review, ReviewImage
 from django.test      import TestCase, Client
 from django.conf      import settings
 
@@ -251,7 +252,7 @@ class LikeTest(TestCase):
         )
     
     def test_like_post_not_found_fail(self):
-        client = Client()
+        client       = Client()
         access_token = jwt.encode({'id' : 1}, settings.SECRET_KEY,algorithm='HS256')
         headers      = {"HTTP_Authorization": access_token}
         response     = client.post('/product/0/like', **headers)
@@ -288,3 +289,76 @@ class LikeTest(TestCase):
         response     = client.post('/product/1/like', **headers)        
         self.assertEqual(response.status_code,401)
         self.assertEqual(response.json(), {'MESSAGE' : 'ENCODE_ERROR'}) 
+
+class CommentTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        User.objects.bulk_create([
+            User(id=1, kakao_id=1, nickname="palli"),
+            User(id=2, kakao_id=2, nickname="dong")
+        ])
+        Product.objects.bulk_create([
+            Product(id=1, title="필라테스 강습", price = 100, discount_percent = 10, description = "그냥 사", user_id=1),
+            Product(id=2, title="필라테스 실습", price = 1000, discount_percent = 20, description = "사", user_id=1)
+        ])
+        Review.objects.bulk_create([
+            Review(id=1, rating=4, comment="좋아요", user_id=1, product_id=1),
+            Review(id=2, rating=5, comment="완전 좋아요", user_id=2, product_id=1),
+        ])
+        ReviewImage.objects.create(
+            image_url = "www.sdk.com",
+            review_id = 1
+        )
+
+    def test_comment_get_not_found_fail(self):
+
+        client   = Client()
+        response = client.get('/product/0/review')        
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json(), {'MESSAGE' : 'NOT_FOUND'})
+    
+    def test_comment_get_success(self):
+        client   = Client()        
+        response = client.get('/product/1/review')        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), 
+            {
+                'result': 
+                {
+                    'count'        : 2, 
+                    'avg'          : '4.5', 
+                    'perfect_rate' : 50.0, 
+                    'reviewer'     : [
+                        {
+                            'user': 'dong',
+                            'rating': '5.000',
+                            'commrnt': '완전 좋아요',
+                            'image': []
+                        },
+                        {
+                            'user'    : 'palli',
+                            'rating'  : '4.000',
+                            'commrnt' : '좋아요',
+                            'image'   : ['https://flip-back.s3.ap-northeast-2.amazonaws.com/media/www.sdk.com']
+                        }
+                    ]
+                }
+            }
+        )
+    
+    def test_comment_get_no_review_success(self):
+        client   = Client()        
+        response = client.get('/product/2/review') 
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), 
+            {
+                'result':
+                {
+                    'count': 0,
+                    'avg'  : 0,
+                    'perfect_rate': 0,
+                    'reviewer': []
+                }
+            }
+        )
+
