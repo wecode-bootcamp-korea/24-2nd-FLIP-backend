@@ -3,14 +3,12 @@ from pathlib     import Path
 
 from my_settings import DATABASES, SECRET_KEY,AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY 
 
-# import pymysql
+#import pymysql
 
-# pymysql.install_as_MySQLdb()
+#pymysql.install_as_MySQLdb()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -156,7 +154,7 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',
 )
 
-#AWS S3
+# AWS S3
 
 AWS_ACCESS_KEY_ID = AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY = AWS_SECRET_ACCESS_KEY
