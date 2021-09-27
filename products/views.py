@@ -1,11 +1,10 @@
-
 import jwt
 import json
 
 from django.conf     import settings
 from django.http     import JsonResponse
 from django.views    import View
-from django.db.models import Count
+from django.db.models import Count, Avg
 
 from products.models import MainCategory, Product, SubCategory, UserLike, Review
 from users.models  import User
@@ -84,7 +83,6 @@ class ProductDetailView(View):
 class LikeView(View):
     @login_decorator
     def post(self, request, product_id):
-
         if not Product.objects.filter(id=product_id):
             return JsonResponse({'MESSAGE' : 'NOT_FOUND'}, status=404)
 
@@ -95,3 +93,24 @@ class LikeView(View):
         UserLike.objects.create(user=request.user, product_id=product_id)
         return JsonResponse({'MESSAGE' : 'SUCCESS'}, status=201)
 
+class ReviewView(View):    
+    def get(self, request, product_id):
+        if not Product.objects.filter(id=product_id).exists():
+            return JsonResponse({'MESSAGE' : 'PRODUCT_NOT_FOUND'}, status=404)
+
+        reviews = Review.objects.select_related('user').prefetch_related('reviewimage_set')\
+                    .order_by('-rating').filter(product_id=product_id)
+                
+        result = {
+            'count'        : len(reviews),
+            'avg'          : round(reviews.aggregate(avg=Avg('rating'))['avg'],1) if reviews else 0,
+            'perfect_rate' : len(Review.objects.filter(rating=5)) / len(reviews) * 100 if reviews else 0,
+            'reviewer'     : [{
+                'user'    : review.user.nickname,
+                'rating'  : review.rating,
+                'commrnt' : review.comment,
+                'image'   : [image.image_url.url for image in review.reviewimage_set.all()]
+            }for review in reviews]
+        }
+
+        return JsonResponse({'result' : result}, status = 200)
