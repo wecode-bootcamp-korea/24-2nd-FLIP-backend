@@ -315,7 +315,7 @@ class CommentTest(TestCase):
         client   = Client()
         response = client.get('/product/0/review')        
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.json(), {'MESSAGE' : 'NOT_FOUND'})
+        self.assertEqual(response.json(), {'MESSAGE' : 'PRODUCT_NOT_FOUND'})
     
     def test_comment_get_success(self):
         client   = Client()        
@@ -330,16 +330,18 @@ class CommentTest(TestCase):
                     'perfect_rate' : 50.0, 
                     'reviewer'     : [
                         {
-                            'user': 'dong',
-                            'rating': '5.000',
-                            'commrnt': '완전 좋아요',
-                            'image': []
+                            'user'    : 'dong',
+                            'profile' : None,
+                            'rating'  : '5.000',
+                            'comment' : '완전 좋아요',
+                            'images'  : []
                         },
                         {
                             'user'    : 'palli',
+                            'profile' : None,
                             'rating'  : '4.000',
-                            'commrnt' : '좋아요',
-                            'image'   : ['https://flip-back.s3.ap-northeast-2.amazonaws.com/media/www.sdk.com']
+                            'comment' : '좋아요',
+                            'images'  : ['https://flip-back.s3.ap-northeast-2.amazonaws.com/media/www.sdk.com']
                         }
                     ]
                 }
@@ -361,4 +363,3 @@ class CommentTest(TestCase):
                 }
             }
         )
-
