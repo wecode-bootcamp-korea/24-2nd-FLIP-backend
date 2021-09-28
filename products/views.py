@@ -107,8 +107,9 @@ class ReviewView(View):
             'perfect_rate' : len(Review.objects.filter(rating=5)) / len(reviews) * 100 if reviews else 0,
             'reviewer'     : [{
                 'user'    : review.user.nickname,
+                'profile' : review.user.image_url,
                 'rating'  : review.rating,
-                'commrnt' : review.comment,
+                'comment' : review.comment,
                 'image'   : [image.image_url.url for image in review.reviewimage_set.all()]
             }for review in reviews]
         }
