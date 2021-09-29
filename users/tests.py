@@ -3,7 +3,6 @@ import json
 import unittest
 
 from django.test    import TestCase, Client
-from datetime       import datetime, timedelta
 from unittest.mock  import patch, MagicMock
 
 from my_settings    import SECRET_KEY, ALGORITHM
