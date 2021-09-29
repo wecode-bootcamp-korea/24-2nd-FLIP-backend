@@ -149,7 +149,7 @@ class ProductDetailTest(TestCase):
                     "id"               : 3,
                     "title"            : "필라테스 강습",
                     "price"            : 100,
-                    "image"            : ['https://flip-back.s3.ap-northeast-2.amazonaws.com/media/hello'],
+                    "image"            : ['https://flip-test2.s3.ap-northeast-2.amazonaws.com/hello'],
                     "discounted_price" : 90,
                     "discount_percent" : 10,
                     "description"      : "그냥 사",
@@ -214,7 +214,7 @@ class ProductDetailTest(TestCase):
                     "id"               : 3,
                     "title"            : "필라테스 강습",
                     "price"            : 100,
-                    "image"            : ['https://flip-back.s3.ap-northeast-2.amazonaws.com/media/hello'],
+                    "image"            : ['https://flip-test2.s3.ap-northeast-2.amazonaws.com/hello'],
                     "discounted_price" : 90,
                     "discount_percent" : 10,
                     "description"      : "그냥 사",
@@ -249,7 +249,7 @@ class ProductDetailTest(TestCase):
                     "id"               : 3,
                     "title"            : "필라테스 강습",
                     "price"            : 100,
-                    "image"            : ['https://flip-back.s3.ap-northeast-2.amazonaws.com/media/hello'],
+                    "image"            : ['https://flip-test2.s3.ap-northeast-2.amazonaws.com/hello'],
                     "discounted_price" : 90,
                     "discount_percent" : 10,
                     "description"      : "그냥 사",
@@ -377,7 +377,7 @@ class CommentTest(TestCase):
                             'profile' : None,
                             'rating'  : '4.000',
                             'comment' : '좋아요',
-                            'image'   : ['https://flip-back.s3.ap-northeast-2.amazonaws.com/media/www.sdk.com']
+                            'image'   : ['www.sdk.com']
                         }
                     ]
                 }
