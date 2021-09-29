@@ -1,13 +1,14 @@
-from django.http import response
+from django.http      import response
 import jwt
 import json
 
 from django.test      import TestCase, Client
 from django.conf      import settings
+from unittest.mock    import patch, MagicMock
+
 
 from products.models  import MainCategory, Product, SubCategory, ProductImage, Location, GatherLocation, Review, UserLike, ReviewImage
 from users.models     import User, Bank, BankAccount
-
 
 class MainCategoryTest(TestCase):
     def setUp(self):
@@ -34,8 +35,10 @@ class MainCategoryTest(TestCase):
             {
                 "sub_category_list" : [
                     {
-                        "sub_category_id"   : 1,
-                        "sub_category_name" : "서핑"
+                        "main_category_id"   : 1,
+                        "main_category_name" : "아웃도어",
+                        "sub_category_id"    : 1,
+                        "sub_category_name"  : "서핑"
                     }
                 ]
             }
@@ -516,7 +519,6 @@ class UserProductViewTestGET(TestCase):
         Location.objects.all().delete()
         GatherLocation.objects.all().delete()
         ProductImage.objects.all().delete()
-        self.assertEqual(response.status_code, 200)
 
 class MainPageCategoryTest(TestCase):
     def setUp(self):
@@ -543,3 +545,148 @@ class MainPageCategoryTest(TestCase):
                 ]
             }
         )
+
+class ProductListTest(TestCase):
+    def setUp(self):
+        User.objects.bulk_create([
+            User(id=1, kakao_id=1, nickname='김테스트', image_url='url1'),
+            User(id=2, kakao_id=2, nickname='박테스트', image_url='url2')
+        ])
+        MainCategory.objects.create(
+            id   = 1,
+            name = '아웃도어',
+        )
+        SubCategory.objects.create(
+            id               = 1,
+            name             = '서핑',
+            main_category_id = 1,
+        )
+        Product.objects.bulk_create([
+            Product(id=1, title='서울 캠핑', price=1000, discount_percent=0, sub_category_id=1, user_id=1),
+            Product(id=2, title='양양 캠핑', price=100, discount_percent=0, sub_category_id=1, user_id=1),
+        ])
+        ProductImage.objects.bulk_create([
+            ProductImage(id=1, product_id=1, image_url='url3'),
+            ProductImage(id=2, product_id=2, image_url='url4'),
+        ])
+        Review.objects.bulk_create([
+            Review(id=1, user_id=1, product_id=1, rating=5, comment='좋아요'),
+            Review(id=2, user_id=1, product_id=2, rating=3, comment='그냥저냥'),
+            Review(id=3, user_id=2, product_id=1, rating=3, comment='쏘쏘'),
+            Review(id=4, user_id=2, product_id=2, rating=1, comment='최악'),
+        ])
+
+    def tearDown(self):
+        MainCategory.objects.all().delete()
+        SubCategory.objects.all().delete()
+        Product.objects.all().delete()
+        ProductImage.objects.all().delete()
+        User.objects.all().delete()
+        Review.objects.all().delete()
+
+    def test_productlist_subcategory_get_success(self):
+        client   = Client()
+        response = client.get("/products/list/1?sub_category_id=1")
+        self.assertEqual(response.json(),
+            {
+                'MESSAGE' : [
+                    {
+                        'product_id' : 1,
+                        'title'      : '서울 캠핑',
+                        'price'      : 1000,
+                        'image_url'  : ['url3'],
+                        'rating'     : 4.0,
+                    },
+                    {
+                        'product_id' : 2,
+                        'title'      : '양양 캠핑',
+                        'price'      : 100,
+                        'image_url'  : ['url4'],
+                        'rating'     : 2.0,
+                    },
+                ]
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_productlist_subcategory_get_success(self):
+        client   = Client()
+        response = client.get("/products/list/1")
+        self.assertEqual(response.json(),
+            {
+                'MESSAGE' : [
+                    {
+                        'product_id'         : 1,
+                        'title'              : '서울 캠핑',
+                        'price'              : 1000,
+                        'image_url'          : ['url3'],
+                        'rating'             : 4.0,
+                        'main_category_id'   : 1,
+                        'main_category_name' : '아웃도어',
+                        'sub_category_id'    : 1,
+                        'sub_category_name'  : '캠핑'
+                    },
+                    {
+                        'product_id' : 2,
+                        'title'      : '양양 캠핑',
+                        'price'      : 100,
+                        'image_url'  : ['url4'],
+                        'rating'     : 2.0,
+                        'main_category_id'   : 1,
+                        'main_category_name' : '아웃도어',
+                        'sub_category_id'    : 1,
+                        'sub_category_name'  : '캠핑'
+                    },
+                ]
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_productlist_mainsubcategory_rating_filtering_get_success(self):
+        client   = Client()
+        response = client.get("/products/list/1?sub_category_id=1&order=-rating_count")
+        self.assertEqual(response.json(),
+            {
+                'MESSAGE' : [
+                    {
+                        'product_id' : 1,
+                        'title'      : '서울 캠핑',
+                        'price'      : 1000,
+                        'image_url'  : ['url3'],
+                        'rating'     : 4.0,
+                        'main_category_id'   : 1,
+                        'main_category_name' : '아웃도어',
+                        'sub_category_id'    : 1,
+                        'sub_category_name'  : '캠핑'
+                    },
+                    {
+                        'product_id' : 2,
+                        'title'      : '양양 캠핑',
+                        'price'      : 100,
+                        'image_url'  : ['url4'],
+                        'rating'     : 2.0,
+                        'main_category_id'   : 1,
+                        'main_category_name' : '아웃도어',
+                        'sub_category_id'    : 1,
+                        'sub_category_name'  : '캠핑'
+                    },
+                ]
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_productlist_wrong_filtering_get_failure(self):
+        client = Client()
+        response = client.get("/products/list/1?order=bug")
+        self.assertEqual(response.json(),
+            {"MESSAGE" : "FIELD_ERROR"}
+            )
+        self.assertEqual(response.status_code, 400)
+
+    def test_productlist_no_maincategory_get_failure(self):
+        client = Client()
+        response = client.get("/products/list/800")
+        self.assertEqual(response.json(),
+            {"MESSAGE" : "Non-Existing Main Category Info"}
+        )
+        self.assertEqual(response.status_code, 404)
