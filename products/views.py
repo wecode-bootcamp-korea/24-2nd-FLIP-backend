@@ -1,4 +1,4 @@
-import json
+import jwt
 import boto3
 
 from unittest.main    import main
@@ -81,7 +81,7 @@ class ProductDetailView(View):
             return JsonResponse({'result':result}, status=200)
 
         except Exception:
-            return JsonResponse({"MESSAGE" : "WRONG_ACCESS"}, status=401)   
+            return JsonResponse({"MESSAGE":"WRONG_ACCESS"}, status=401)   
 
 class LikeView(View):
     @login_decorator
@@ -129,13 +129,13 @@ class UserProductView(View):
     def post(self, request, user_id):
         try:
             if not User.objects.filter(id=user_id).exists():
-                return JsonResponse({"ERROR":"USER_DOESN'T_EXIST"}, status=400)
+                return JsonResponse({"ERROR" : "USER_DOESN'T_EXIST"}, status=400)
             
             if not User.objects.get(id=user_id).bank_account_id:
-                return JsonResponse({"ERROR":"YOU'RE_NOT_A_HOST"}, status=400)
+                return JsonResponse({"ERROR" : "YOU'RE_NOT_A_HOST"}, status=400)
             
             if not SubCategory.objects.filter(name=request.POST.get("sub_category")).exists():
-                return JsonResponse({"ERROR":"SUBCATEGORY_DOES'NT_EXISTS"}, status=400)
+                return JsonResponse({"ERROR" : "SUBCATEGORY_DOES'NT_EXISTS"}, status=400)
 
             final_price = int(float(request.POST.get("price")) * (1 - (float(request.POST.get("sale_percent")) / 100)))
             
@@ -158,15 +158,15 @@ class UserProductView(View):
                 address    = request.POST.get("gather_location")
             )
 
-            image_list     = request.FILES.getlist("image_url")
+            image_list = request.FILES.getlist("image_url")
             [self.s3_client.upload_fileobj(
-                    image,
-                    "flip-test2",
-                    image.name,
-                    ExtraArgs={
-                        "ContentType": image.content_type
-                    }
-                )for image in image_list]
+                image,
+                "flip-test2",
+                image.name,
+                ExtraArgs={
+                    "ContentType" : image.content_type
+                }
+            )for image in image_list]
 
             [ProductImage.objects.create(
                 product_id = product.id,
@@ -178,10 +178,8 @@ class UserProductView(View):
             transaction.rollback()
         except TypeError:
             return JsonResponse({"ERROR" : "TYPE_ERROR"}, status=400)
-
         except KeyError:
             return JsonResponse({"ERROR" : "KEY_ERROR"}, status=400)
-        
         except ValueError:
             return JsonResponse({"ERROR" : "VALUE_ERROR"}, status=400)
     
@@ -208,9 +206,9 @@ class MainPageCategoryView(View):
     def get(self, request):
         main_category_info = [
             {
-                'main_category_id'         : main_category.id,
-                'main_category_name'       : main_category.name,
-                'main_category_image_url'  : main_category.image_url
+                'main_category_id'        : main_category.id,
+                'main_category_name'      : main_category.name,
+                'main_category_image_url' : main_category.image_url
             } for main_category in MainCategory.objects.all()
         ]
 
