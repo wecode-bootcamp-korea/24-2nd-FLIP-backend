@@ -1,3 +1,4 @@
+from django.http import response
 import jwt
 import json
 
@@ -102,12 +103,23 @@ class ProductDetailTest(TestCase):
         access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
         headers      = {"HTTP_Authorization": access_token}        
         response     = client.get('/product/0', **headers)        
+        client       = Client()
+        # given
+        access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization": access_token}
+        # when
+        response = client.get('/product/0', **headers)
+        # then 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json(), {'MESSAGE':'NOT_FOUND'})
 
     def test_product_detail_get_none_token_not_found_fail(self):
         client       = Client()        
         response     = client.get('/product/0')        
+        client       = Client()
+        # when
+        response = client.get('/product/0')
+        # then 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json(), {'MESSAGE':'NOT_FOUND'})
 
@@ -116,6 +128,13 @@ class ProductDetailTest(TestCase):
         access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
         headers      = {"HTTP_Authorization": access_token}        
         response = client.get('/product/3', **headers) 
+        client       = Client()
+        # given
+        access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization": access_token}
+        # when 
+        response = client.get('/product/3', **headers)
+        #then
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -144,6 +163,13 @@ class ProductDetailTest(TestCase):
         access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
         headers      = {"HTTP_Authorization": access_token}        
         response = client.get('/product/4', **headers)        
+        client       = Client()
+        # given
+        access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization": access_token}
+        # when 
+        response = client.get('/product/4', **headers)
+        #then
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -171,6 +197,9 @@ class ProductDetailTest(TestCase):
     def test_product_detail_get_none_token_success(self):
         client       = Client()
         response     = client.get('/product/3')        
+        # when 
+        response = client.get('/product/3')
+        #then
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -200,6 +229,12 @@ class ProductDetailTest(TestCase):
         access_token = jwt.encode({'id' : 5}, settings.SECRET_KEY,algorithm='HS256')
         headers      = {"HTTP_Authorization": access_token}
         response = client.get('/product/3', **headers)        
+        # given
+        access_token = jwt.encode({'id' : 5}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization": access_token}
+        # when 
+        response = client.get('/product/3', **headers)
+        #then
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -364,6 +399,14 @@ class CommentTest(TestCase):
                 }
             }
         )
+        client       = Client()
+        # given
+        headers      = {"HTTP_Authorization": "fake_token"}
+        # when
+        response = client.get('/product/3', **headers)
+        # then 
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(), {'MESSAGE':'WRONG_ACCESS'})
 
 class UserProductViewTestGET(TestCase):
     def setUp(self):
@@ -473,3 +516,30 @@ class UserProductViewTestGET(TestCase):
         Location.objects.all().delete()
         GatherLocation.objects.all().delete()
         ProductImage.objects.all().delete()
+        self.assertEqual(response.status_code, 200)
+
+class MainPageCategoryTest(TestCase):
+    def setUp(self):
+        main_category = MainCategory.objects.create(
+            id        = 1,
+            name      = "아웃도어",
+            image_url = "https://images.ctfassets.net/hrltx12pl8hq/38KzANR5RR0lZ8jPlkOMwr/91b5342346b92bdf11c35a862e747d03/01-parks-outdoors_1661119069.jpg?fit=fill&w=480&h=270"
+        )
+
+    def tearDown(self):
+        MainCategory.objects.all().delete()
+
+    def test_mainpagecategory_test_success(self):
+        client = Client()
+        response = client.get("/products/main_page_category")
+        self.assertEqual(response.json(),
+            {
+                "main_category_info" : [
+                    {
+                        "main_category_id" : 1,
+                        "main_category_name" : "아웃도어",
+                        "main_category_image_url" : "https://images.ctfassets.net/hrltx12pl8hq/38KzANR5RR0lZ8jPlkOMwr/91b5342346b92bdf11c35a862e747d03/01-parks-outdoors_1661119069.jpg?fit=fill&w=480&h=270",
+                    }
+                ]
+            }
+        )

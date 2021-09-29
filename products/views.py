@@ -1,4 +1,3 @@
-import jwt
 import json
 import boto3
 
@@ -13,7 +12,6 @@ from users.models    import User
 from users.decorator import login_decorator
 from my_settings     import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 from products.models import Review, Location, MainCategory, Product, SubCategory, GatherLocation, ProductImage, UserLike
-
 
 class ListCategoryView(View):
     def get(self, request, main_category_id):
@@ -205,3 +203,15 @@ class UserProductView(View):
         } for product in products]
 
         return JsonResponse({"MESSAGE" : products_list}, status=200)
+
+class MainPageCategoryView(View):
+    def get(self, request):
+        main_category_info = [
+            {
+                'main_category_id'         : main_category.id,
+                'main_category_name'       : main_category.name,
+                'main_category_image_url'  : main_category.image_url
+            } for main_category in MainCategory.objects.all()
+        ]
+
+        return JsonResponse({'main_category_info' : main_category_info}, status=200)
