@@ -465,12 +465,12 @@ class UserProductViewTestGET(TestCase):
             ProductImage(
                 id         = 1,
                 product_id = product.id,
-                image_url  = "https://s3.ap-northeast-2.amazonaws.com/flip-test2/IMG_7063.JPG"
+                image_url  = "IMG_7063.JPG"
             ),
             ProductImage(
                 id         = 2,
                 product_id = product.id,
-                image_url  = "https://s3.ap-northeast-2.amazonaws.com/flip-test2/IMG_5081.JPG"
+                image_url  = "IMG_5081.JPG"
             ),
         ])
 
@@ -498,8 +498,8 @@ class UserProductViewTestGET(TestCase):
                         "playing_location": "인왕산",
                         "gather_location" : "사직단",
                         "image_url"       : [
-                            "https://flip-test2.s3.ap-northeast-2.amazonaws.com/media/https%3A/s3.ap-northeast-2.amazonaws.com/flip-test2/IMG_7063.JPG",
-                            "https://flip-test2.s3.ap-northeast-2.amazonaws.com/media/https%3A/s3.ap-northeast-2.amazonaws.com/flip-test2/IMG_5081.JPG"
+                            "https://flip-test2.s3.ap-northeast-2.amazonaws.com/IMG_7063.JPG",
+                            "https://flip-test2.s3.ap-northeast-2.amazonaws.com/IMG_5081.JPG"
                         ]
                     }
                 ]

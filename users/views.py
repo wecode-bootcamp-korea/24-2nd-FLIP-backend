@@ -1,4 +1,5 @@
 import json
+from products.models import Location
 import jwt
 import requests
 
@@ -7,7 +8,9 @@ from django.http.response import JsonResponse
 from datetime             import datetime, timedelta
 
 
-from users.models import User
+from users.models import User, Bank, BankAccount
+from products.models import Review, Location, MainCategory, Product, SubCategory, GatherLocation, ProductImage, UserLike
+
 from my_settings  import SECRET_KEY, ALGORITHM
 
 KAKAO_USER_INFORMATION_API ="https://kapi.kakao.com/v2/user/me"

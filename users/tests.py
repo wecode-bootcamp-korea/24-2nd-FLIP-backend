@@ -2,11 +2,11 @@ import jwt
 import json
 import unittest
 
-from django.test import TestCase, Client
- 
+from django.test    import TestCase, Client
+from datetime       import datetime, timedelta
 from unittest.mock  import patch, MagicMock
-from users.models import User
-from my_settings  import SECRET_KEY, ALGORITHM
+from users.models   import User
+from my_settings    import SECRET_KEY, ALGORITHM
 
 class KakaoSocialLoginTest(TestCase):
     @patch("users.views.requests")
@@ -42,7 +42,7 @@ class KakaoSocialLoginTest(TestCase):
         data = {"access_token": "fake_auth_key"}
         response = client.post("/users/signin", content_type="application/json", data=json.dumps(data))
 
-        token = jwt.encode({"id": 1}, SECRET_KEY, algorithm=ALGORITHM)
+        token = jwt.encode({"id": 1}, {'exp':datetime.utcnow() + timedelta(days=2)}, SECRET_KEY, algorithm=ALGORITHM)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"TOKEN": token})
 
