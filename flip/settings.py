@@ -1,3 +1,4 @@
+import jwt
 import os
 from pathlib     import Path
 
@@ -166,6 +167,6 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 1024000000 # value in bytes 1GB here
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024000000
 
 DEFAULT_FILE_STORAGE = 'core.storages.MediaStorage'
-STATICFILES_STORAGE  = 'core.storages.StaticStorage'
-MEDIAFILES_LOCATION  = ''
+STATICFILES_STORAGE = 'core.storages.StaticStorage'
+MEDIAFILES_LOCATION = ''
 STATICFILES_LOCATION = 'static'
