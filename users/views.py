@@ -38,9 +38,9 @@ class KakaoSignInView(View):
                 'image_url':profile_image
             }
         )
-
+        
         kakao_user = User.objects.get(kakao_id=kakao_number)
-        token      = jwt.encode({"id": kakao_user.id, 'exp':datetime.utcnow() + timedelta(days=2)}, SECRET_KEY, algorithm=ALGORITHM)
+        token      = jwt.encode({"id": kakao_user.id}, SECRET_KEY, algorithm=ALGORITHM)
 
         return JsonResponse({"TOKEN": token}, status=200)
 

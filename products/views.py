@@ -13,6 +13,7 @@ from users.decorator import login_decorator
 from my_settings     import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 from products.models import Review, Location, MainCategory, Product, SubCategory, GatherLocation, ProductImage, UserLike
 
+
 class ListCategoryView(View):
     def get(self, request, main_category_id):
         try:
@@ -81,7 +82,7 @@ class ProductDetailView(View):
             return JsonResponse({'result':result}, status=200)
 
         except Exception:
-            return JsonResponse({"MESSAGE":"WRONG_ACCESS"}, status=401)   
+            return JsonResponse({"MESSAGE" : "WRONG_ACCESS"}, status=401)   
 
 class LikeView(View):
     @login_decorator
@@ -113,7 +114,7 @@ class ReviewView(View):
                 'profile' : review.user.image_url,
                 'rating'  : review.rating,
                 'comment' : review.comment,
-                'image'   : [image.image_url for image in review.reviewimage_set.all()]
+                'image'   : [image.image_url.url for image in review.reviewimage_set.all()]
             }for review in reviews]
         }
         return JsonResponse({'result' : result}, status = 200)
