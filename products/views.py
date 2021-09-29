@@ -115,7 +115,7 @@ class ReviewView(View):
                 'profile' : review.user.image_url,
                 'rating'  : review.rating,
                 'comment' : review.comment,
-                'image'   : [image.image_url.url for image in review.reviewimage_set.all()]
+                'image'   : [image.image_url for image in review.reviewimage_set.all()]
             }for review in reviews]
         }
         return JsonResponse({'result' : result}, status = 200)

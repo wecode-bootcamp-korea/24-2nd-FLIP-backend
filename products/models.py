@@ -1,3 +1,4 @@
+from django.db.models.fields.files import ImageField
 from core.models  import TimeStampModel
 from django.db    import models
 
@@ -29,21 +30,21 @@ class MainCategory(TimeStampModel):
         db_table = 'main_categories'
 
 class Location(TimeStampModel):
-    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    product = models.OneToOneField('Product', on_delete=models.CASCADE)
     address = models.CharField(max_length=50)
 
     class Meta:
         db_table = 'locations'
 
 class GatherLocation(TimeStampModel):
-    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    product = models.OneToOneField('Product', on_delete=models.CASCADE)
     address = models.CharField(max_length=50)
 
     class Meta:
         db_table = 'gather_locations'
 
 class ProductImage(TimeStampModel):
-    image_url = models.ImageField()
+    image_url = ImageField()
     product   = models.ForeignKey('Product', on_delete=models.CASCADE)
 
     class Meta:
@@ -59,7 +60,7 @@ class Review(TimeStampModel):
         db_table = 'reviews'
 
 class ReviewImage(TimeStampModel):
-    image_url = models.ImageField()
+    image_url = models.CharField(max_length=2000)
     review    = models.ForeignKey('Review', on_delete=models.CASCADE) 
 
     class Meta:
