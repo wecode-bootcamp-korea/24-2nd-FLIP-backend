@@ -6,7 +6,8 @@ from django.views     import View
 from django.conf      import settings
 from django.db        import transaction
 from django.http      import JsonResponse
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Q
+from django.core.exceptions import FieldError
 
 from users.models    import User
 from users.decorator import login_decorator
@@ -22,8 +23,10 @@ class ListCategoryView(View):
 
             sub_category_list = [
                 {
-                    'sub_category_id'   : sub_category.id,
-                    'sub_category_name' : sub_category.name
+                    'main_category_id'   : sub_category.main_category.id,
+                    'main_category_name' : sub_category.main_category.name,
+                    'sub_category_id'    : sub_category.id,
+                    'sub_category_name'  : sub_category.name
                 } for sub_category in SubCategory.objects.filter(main_category_id = main_category_id)
             ]
             return JsonResponse({'sub_category_list': sub_category_list}, status=200)
@@ -212,5 +215,42 @@ class MainPageCategoryView(View):
                 'main_category_image_url' : main_category.image_url
             } for main_category in MainCategory.objects.all()
         ]
-
         return JsonResponse({'main_category_info' : main_category_info}, status=200)
+
+class ProductListView(View):
+    def get(self, request, main_category_id):
+
+        try:
+            sub_category_id  = request.GET.get('sub_category_id', None)
+            order            = request.GET.get('order', 'id')
+
+            if not Product.objects.filter(sub_category_id__main_category_id = main_category_id).exists():
+                return JsonResponse({'MESSAGE':'Non-Existing Main Category Info'}, status=404)
+
+            q = Q()
+
+            if sub_category_id:
+                q &= Q(sub_category_id = sub_category_id)
+
+            products = Product.objects.filter(q).annotate(rating_count = Avg('review__rating')).order_by(order)
+
+            product_info = [
+                {
+                'product_id'         : product.id,
+                'title'              : product.title,
+                'price'              : round(float(product.price * (100 - product.discount_percent) / 100)),
+                'image_url'          : [image.image_url.url for image in product.productimage_set.all()],
+                'rating'             : float(round(product.rating_count, 1)),
+                'main_category_id'   : product.sub_category.main_category.id,
+                'main_category_name' : product.sub_category.main_category.name,
+                'sub_category_id'    : product.sub_category_id,
+                'sub_category_name'  : product.sub_category.name,
+                } for product in products
+            ]
+            return JsonResponse({'MESSAGE' : product_info}, status=200)
+
+        except KeyError:
+            return JsonResponse({'MESSAGE':'KEY_ERROR'}, status=400)
+        
+        except FieldError:
+            return JsonResponse({'MESSAGE':'FIELD_ERROR'}, status=400)
