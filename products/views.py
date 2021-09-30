@@ -213,6 +213,9 @@ class ProductListView(View):
 
             q = Q()
 
+            if main_category_id:
+                q &= Q(sub_category_id__main_category_id = main_category_id)
+
             if sub_category_id:
                 q &= Q(sub_category_id = sub_category_id)
 
@@ -224,7 +227,7 @@ class ProductListView(View):
                 'title'              : product.title,
                 'price'              : round(float(product.price * (100 - product.discount_percent) / 100)),
                 'image_url'          : [image.image_url.url for image in product.productimage_set.all()],
-                'rating'             : float(round(product.rating_count, 1)),
+                'rating'             : float(round(product.rating_count, 1)) if product.rating_count else None,
                 'main_category_id'   : product.sub_category.main_category.id,
                 'main_category_name' : product.sub_category.main_category.name,
                 'sub_category_id'    : product.sub_category_id,
