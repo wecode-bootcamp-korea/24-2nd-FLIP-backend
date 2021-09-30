@@ -9,6 +9,13 @@ from users.models   import User
 from my_settings    import SECRET_KEY, ALGORITHM
 
 class KakaoSocialLoginTest(TestCase):
+    def setUp(self):
+       user = User.objects.create(
+            id        = 1,
+            kakao_id  = 123456789,
+            nickname  = "melody",
+        )
+        
     @patch("users.views.requests")
     def test_kakao_signin_new_user_success(self, mocked_requests):
         client = Client()
@@ -42,7 +49,7 @@ class KakaoSocialLoginTest(TestCase):
         data = {"access_token": "fake_auth_key"}
         response = client.post("/users/signin", content_type="application/json", data=json.dumps(data))
 
-        token = jwt.encode({"id": 1}, {'exp':datetime.utcnow() + timedelta(days=2)}, SECRET_KEY, algorithm=ALGORITHM)
+        token = jwt.encode({"id": 1}, SECRET_KEY, algorithm=ALGORITHM)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"TOKEN": token})
 
