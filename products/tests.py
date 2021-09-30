@@ -1,6 +1,6 @@
-from django.http      import response
 import jwt
 import json
+import requests
 
 from django.test      import TestCase, Client
 from django.conf      import settings
@@ -107,12 +107,9 @@ class ProductDetailTest(TestCase):
         headers      = {"HTTP_Authorization": access_token}        
         response     = client.get('/product/0', **headers)        
         client       = Client()
-        # given
         access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
         headers      = {"HTTP_Authorization": access_token}
-        # when
         response = client.get('/product/0', **headers)
-        # then 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json(), {'MESSAGE':'NOT_FOUND'})
 
@@ -120,9 +117,7 @@ class ProductDetailTest(TestCase):
         client       = Client()        
         response     = client.get('/product/0')        
         client       = Client()
-        # when
         response = client.get('/product/0')
-        # then 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json(), {'MESSAGE':'NOT_FOUND'})
 
@@ -132,12 +127,9 @@ class ProductDetailTest(TestCase):
         headers      = {"HTTP_Authorization": access_token}        
         response = client.get('/product/3', **headers) 
         client       = Client()
-        # given
         access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
         headers      = {"HTTP_Authorization": access_token}
-        # when 
         response = client.get('/product/3', **headers)
-        #then
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -167,12 +159,9 @@ class ProductDetailTest(TestCase):
         headers      = {"HTTP_Authorization": access_token}        
         response = client.get('/product/4', **headers)        
         client       = Client()
-        # given
         access_token = jwt.encode({'id' : 3}, settings.SECRET_KEY,algorithm='HS256')
         headers      = {"HTTP_Authorization": access_token}
-        # when 
         response = client.get('/product/4', **headers)
-        #then
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -200,9 +189,7 @@ class ProductDetailTest(TestCase):
     def test_product_detail_get_none_token_success(self):
         client       = Client()
         response     = client.get('/product/3')        
-        # when 
         response = client.get('/product/3')
-        #then
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -232,12 +219,9 @@ class ProductDetailTest(TestCase):
         access_token = jwt.encode({'id' : 5}, settings.SECRET_KEY,algorithm='HS256')
         headers      = {"HTTP_Authorization": access_token}
         response = client.get('/product/3', **headers)        
-        # given
         access_token = jwt.encode({'id' : 5}, settings.SECRET_KEY,algorithm='HS256')
         headers      = {"HTTP_Authorization": access_token}
-        # when 
         response = client.get('/product/3', **headers)
-        #then
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -402,14 +386,6 @@ class CommentTest(TestCase):
                 }
             }
         )
-        client       = Client()
-        # given
-        headers      = {"HTTP_Authorization": "fake_token"}
-        # when
-        response = client.get('/product/3', **headers)
-        # then 
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json(), {'MESSAGE':'WRONG_ACCESS'})
 
 class UserProductViewTestGET(TestCase):
     def setUp(self):
@@ -478,16 +454,19 @@ class UserProductViewTestGET(TestCase):
         ])
 
     def test_user_error(self):
-            client = Client()
-            response = client.get('/products/host/4')
+            client = Client()            
+            access_token = jwt.encode({'id' : 1}, settings.SECRET_KEY,algorithm='HS256')
+            headers      = {"HTTP_Authorization" : access_token}
+            response     = client.get("/products/host/2", **headers)
             self.assertEqual(response.json(), {"ERROR": "USER_DOESN'T_EXIST"})
             self.assertEqual(response.status_code, 404)
 
 
     def test_user_poroduct_get_success(self):
         client  = Client()
-        response = client.get("/products/host/1")
-        
+        access_token = jwt.encode({'id' : 1}, settings.SECRET_KEY,algorithm='HS256')
+        headers      = {"HTTP_Authorization" : access_token}
+        response = client.get("/products/host/1", **headers)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
             {
@@ -614,29 +593,29 @@ class ProductListTest(TestCase):
         response = client.get("/products/list/1")
         self.assertEqual(response.json(),
             {
-                'MESSAGE' : [
+                'MESSAGE': [
                     {
-                        'product_id'         : 1,
-                        'title'              : '서울 캠핑',
-                        'price'              : 1000,
-                        'image_url'          : ['url3'],
-                        'rating'             : 4.0,
-                        'main_category_id'   : 1,
+                        'product_id' : 1,
+                        'title'      : '서울 캠핑',
+                        'price'      : 1000,
+                        'image_url'  : ['https://flip-test2.s3.ap-northeast-2.amazonaws.com/url3'],
+                        'rating'     : 4.0,
+                        'main_category_id'   : 1, 
                         'main_category_name' : '아웃도어',
                         'sub_category_id'    : 1,
-                        'sub_category_name'  : '캠핑'
+                        'sub_category_name'  : '서핑'
                     },
                     {
                         'product_id' : 2,
-                        'title'      : '양양 캠핑',
-                        'price'      : 100,
-                        'image_url'  : ['url4'],
-                        'rating'     : 2.0,
-                        'main_category_id'   : 1,
-                        'main_category_name' : '아웃도어',
+                        'title'      : '양양 캠핑', 
+                        'price'      : 100, 
+                        'image_url'  : ['https://flip-test2.s3.ap-northeast-2.amazonaws.com/url4'],
+                        'rating'     : 2.0, 
+                        'main_category_id'   : 1, 
+                        'main_category_name' : '아웃도어', 
                         'sub_category_id'    : 1,
-                        'sub_category_name'  : '캠핑'
-                    },
+                        'sub_category_name'  : '서핑'
+                    }
                 ]
             }
         )
@@ -644,32 +623,32 @@ class ProductListTest(TestCase):
 
     def test_productlist_mainsubcategory_rating_filtering_get_success(self):
         client   = Client()
-        response = client.get("/products/list/1?sub_category_id=1&order=-rating_count")
+        response = client.get("/products/list/1?sub_category_id=1&order=-rating_count")        
         self.assertEqual(response.json(),
             {
-                'MESSAGE' : [
+                'MESSAGE': [
                     {
-                        'product_id' : 1,
-                        'title'      : '서울 캠핑',
-                        'price'      : 1000,
-                        'image_url'  : ['url3'],
-                        'rating'     : 4.0,
+                        'product_id'         : 1,
+                        'title'              : '서울 캠핑',
+                        'price'              : 1000,
+                        'image_url'          : ['https://flip-test2.s3.ap-northeast-2.amazonaws.com/url3'],
+                        'rating'             : 4.0,
                         'main_category_id'   : 1,
                         'main_category_name' : '아웃도어',
                         'sub_category_id'    : 1,
-                        'sub_category_name'  : '캠핑'
-                    },
+                        'sub_category_name'  : '서핑'
+                    }, 
                     {
-                        'product_id' : 2,
-                        'title'      : '양양 캠핑',
-                        'price'      : 100,
-                        'image_url'  : ['url4'],
-                        'rating'     : 2.0,
+                        'product_id'         : 2,
+                        'title'              : '양양 캠핑',
+                        'price'              : 100,
+                        'image_url'          : ['https://flip-test2.s3.ap-northeast-2.amazonaws.com/url4'],
+                        'rating'             : 2.0,
                         'main_category_id'   : 1,
                         'main_category_name' : '아웃도어',
                         'sub_category_id'    : 1,
-                        'sub_category_name'  : '캠핑'
-                    },
+                        'sub_category_name'  : '서핑'
+                    }
                 ]
             }
         )
@@ -690,3 +669,236 @@ class ProductListTest(TestCase):
             {"MESSAGE" : "Non-Existing Main Category Info"}
         )
         self.assertEqual(response.status_code, 404)
+
+class LocationTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = User.objects.create(
+            id        = 1,
+            kakao_id  = 1,
+            nickname  = "dongpalli",
+            image_url = "www.dk.com"
+        )
+        product = Product.objects.create(
+            id               = 1,
+            title            = "필라테스 강습",
+            price            = 100,
+            discount_percent = 10,
+            description      = "그냥 사",
+            user             = user
+        )
+        product2 = Product.objects.create(
+            id               = 2,
+            title            = "필라테스 강습",
+            price            = 100,
+            discount_percent = 10,
+            description      = "그냥 사",
+            user             = user
+        )
+        product3 = Product.objects.create(
+            id               = 3,
+            title            = "필라테스 강습",
+            price            = 100,
+            discount_percent = 10,
+            description      = "그냥 사",
+            user             = user
+        )
+        product4 = Product.objects.create(
+            id               = 4,
+            title            = "필라테스 강습",
+            price            = 100,
+            discount_percent = 10,
+            description      = "그냥 사",
+            user             = user
+        )
+        Location.objects.create(
+            id      = 1,
+            address = '부평구 안남로 260',
+            product = product
+        )
+        Location.objects.create(
+            id      = 2,
+            address = '부평구 안남로 260',
+            product = product3
+        )
+        Location.objects.create(
+            id      = 3,
+            address = 'fake address',
+            product = product4
+        )
+        GatherLocation.objects.create(
+            id      = 1,
+            address = '북아현로 18길 42',
+            product = product
+        )
+        GatherLocation.objects.create(
+            id      = 2,
+            address = 'fake address',
+            product = product4
+        )
+
+    @patch("products.views.requests")
+    def test_location_get_success(self, mocked_requests):
+        class LocationResponse:
+            def json(self):
+                return {
+                    "documents": [
+                        {
+                        "address": {
+                            "address_name": "서울 서대문구 북아현동 1-244",
+                            "b_code": "1141011000",
+                            "h_code": "1141056500",
+                            "main_address_no": "1",
+                            "mountain_yn": "N",
+                            "region_1depth_name": "서울",
+                            "region_2depth_name": "서대문구",
+                            "region_3depth_h_name": "충현동",
+                            "region_3depth_name": "북아현동",
+                            "sub_address_no": "244",
+                            "x": "126.956264429455",
+                            "y": "37.5636938278799"
+                        },
+                        "address_name": "서울 서대문구 북아현로18길 42",
+                        "address_type": "ROAD_ADDR",
+                        "road_address": {
+                            "address_name": "서울 서대문구 북아현로18길 42",
+                            "building_name": "",
+                            "main_building_no": "42",
+                            "region_1depth_name": "서울",
+                            "region_2depth_name": "서대문구",
+                            "region_3depth_name": "북아현동",
+                            "road_name": "북아현로18길",
+                            "sub_building_no": "",
+                            "underground_yn": "N",
+                            "x": "126.956264429455",
+                            "y": "37.5636938278799",
+                            "zone_no": "03749"
+                        },
+                        "x": "126.956264429455",
+                        "y": "37.5636938278799"
+                        }
+                    ],
+                    "meta": {
+                        "is_end": True,
+                        "pageable_count": 1,
+                        "total_count": 1
+                    }
+                }
+
+        class GatherResponse:
+            def json(self):
+                return {
+                    "documents": [
+                        {
+                        "address": {
+                            "address_name": "서울 서대문구 북아현동 1-244",
+                            "b_code": "1141011000",
+                            "h_code": "1141056500",
+                            "main_address_no": "1",
+                            "mountain_yn": "N",
+                            "region_1depth_name": "서울",
+                            "region_2depth_name": "서대문구",
+                            "region_3depth_h_name": "충현동",
+                            "region_3depth_name": "북아현동",
+                            "sub_address_no": "244",
+                            "x": "126.956264429455",
+                            "y": "37.5636938278799"
+                        },
+                        "address_name": "서울 서대문구 북아현로18길 42",
+                        "address_type": "ROAD_ADDR",
+                        "road_address": {
+                            "address_name": "서울 서대문구 북아현로18길 42",
+                            "building_name": "",
+                            "main_building_no": "42",
+                            "region_1depth_name": "서울",
+                            "region_2depth_name": "서대문구",
+                            "region_3depth_name": "북아현동",
+                            "road_name": "북아현로18길",
+                            "sub_building_no": "",
+                            "underground_yn": "N",
+                            "x": "126.956264429455",
+                            "y": "37.5636938278799",
+                            "zone_no": "03749"
+                        },
+                        "x": "129.956264429455",
+                        "y": "36.5636938278799"
+                        }
+                    ],
+                    "meta": {
+                        "is_end": True,
+                        "pageable_count": 1,
+                        "total_count": 1
+                    }
+                }
+            
+        client = Client()
+        location = LocationResponse()
+        gather   = GatherResponse()
+
+        mock_response = MagicMock()
+        mock_response.side_effect = [location, gather]
+
+        mocked_requests.post = mock_response
+        response = client.get('/product/1/location')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), 
+            {
+                'result': {
+                    'location': {
+                        'x': 126.95626,
+                        'y': 37.56369
+                    },
+                    'gather': {
+                        'x': 129.95626,
+                        'y': 36.56369
+                    }
+                }
+            }
+        )
+
+    def test_location_get_not_found_fail(self):
+        client   = Client()
+        response = client.get('/product/0/location')
+        self.assertEqual(response.status_code, 404)
+
+    def test_location_get_location_does_not_exist_fail(self):
+        client   = Client()
+        response = client.get('/product/2/location')
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json(), {'MESSAGE' : 'LOCATION_NOT_FOUND'})
+    
+    def test_location_get_gather_does_not_exist_fail(self):
+        client   = Client()
+        response = client.get('/product/3/location')
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json(), {'MESSAGE' : 'GATHER_NOT_FOUND'})
+
+    @patch("products.views.requests")
+    def test_location_get_timeout_fail(self, mocked_requests):
+        client = Client()
+        mocked_requests.exceptions.ConnectTimeout = requests.exceptions.ConnectTimeout
+        mock_response = MagicMock()
+        mock_response.side_effect = [mocked_requests.exceptions.ConnectTimeout()]
+        mocked_requests.post = mock_response
+        response = client.get('/product/1/location')
+        self.assertEqual(response.status_code, 408)
+        self.assertEqual(response.json(), {'MESSAGE' : 'TIME_OUT'})
+
+    @patch("products.views.requests")
+    def test_location_index_error_fail(self, mocked_requests):
+        class EmptyResponse():
+            def json(self):
+                return {
+                    "documents": [],
+                    "meta": {
+                        "is_end": True,
+                        "pageable_count": 0,
+                        "total_count": 0
+                    }
+                }
+        client = Client()
+        mocked_requests.exceptions.ConnectTimeout = requests.exceptions.ConnectTimeout
+        mocked_requests.post = MagicMock(return_value = EmptyResponse())
+        response = client.get('/product/4/location')
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(), {'MESSAGE' : 'WRONG_ADDRESS'})

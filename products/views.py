@@ -1,5 +1,6 @@
 import jwt
 import boto3
+import requests
 
 from unittest.main    import main
 from django.views     import View
@@ -10,6 +11,7 @@ from django.db.models import Count, Avg, Q
 from django.core.exceptions import FieldError
 
 from users.models    import User
+from my_settings     import RESTAPI_KEY
 from users.decorator import login_decorator
 from my_settings     import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 from products.models import Review, Location, MainCategory, Product, SubCategory, GatherLocation, ProductImage, UserLike
@@ -117,7 +119,7 @@ class ReviewView(View):
                 'profile' : review.user.image_url,
                 'rating'  : review.rating,
                 'comment' : review.comment,
-                'image'   : [image.image_url.url for image in review.reviewimage_set.all()]
+                'image'   : [image.image_url for image in review.reviewimage_set.all()]
             }for review in reviews]
         }
         return JsonResponse({'result' : result}, status = 200)
@@ -254,3 +256,50 @@ class ProductListView(View):
         
         except FieldError:
             return JsonResponse({'MESSAGE':'FIELD_ERROR'}, status=400)
+
+class LocationView(View):
+    def get(self, request, product_id):
+        try:
+            if not Product.objects.filter(id=product_id).exists():
+                return JsonResponse({'MESSAGE' : 'PRODUCT_NOT_FOUND'}, status=404)
+            
+            location        = Location.objects.get(product_id=product_id)
+            gather          = GatherLocation.objects.get(product_id=product_id)
+            headers         = {'Authorization': f'KakaoAK {RESTAPI_KEY}'}
+            location_querys = {'query' : location.address, 'analyze_type' : 'exact'}
+            gather_querys   = {'query' : gather.address, 'analyze_type' : 'exact'}
+
+            location_request = requests.post('https://dapi.kakao.com/v2/local/search/address.json', \
+                                params=location_querys, headers=headers, timeout=3)
+            gather_request   = requests.post('https://dapi.kakao.com/v2/local/search/address.json', \
+                                params=gather_querys, headers=headers, timeout=3)
+            
+            location_longitude = float(location_request.json().get('documents')[0].get('x'))
+            location_latitude  = float(location_request.json().get('documents')[0].get('y'))
+            gather_longitude   = float(gather_request.json().get('documents')[0].get('x'))
+            gather_latitude    = float(gather_request.json().get('documents')[0].get('y'))
+
+
+            result = {
+                'location' : {
+                    'x' : round(location_longitude, 5),
+                    'y' : round(location_latitude, 5)
+                },
+                'gather' : {
+                    'x' : round(gather_longitude, 5),
+                    'y' : round(gather_latitude, 5)
+                }
+            }
+            return JsonResponse({'result' : result}, status=200)
+            
+        except Location.DoesNotExist:
+            return JsonResponse({'MESSAGE' : 'LOCATION_NOT_FOUND'}, status=404)
+
+        except GatherLocation.DoesNotExist:
+            return JsonResponse({'MESSAGE' : 'GATHER_NOT_FOUND'}, status=404)
+
+        except requests.exceptions.ConnectTimeout:
+            return JsonResponse({'MESSAGE' : 'TIME_OUT'}, status=408)
+
+        except IndexError:
+            return JsonResponse({'MESSAGE' : 'WRONG_ADDRESS'}, status=401)            

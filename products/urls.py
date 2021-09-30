@@ -1,6 +1,6 @@
 from django.urls    import path
 
-from products.views import ListCategoryView,ProductDetailView, LikeView, ReviewView, UserProductView, ProductListView, MainPageCategoryView
+from products.views import ListCategoryView, LocationView,ProductDetailView, LikeView, ReviewView, UserProductView, ProductListView, MainPageCategoryView
 
 
 urlpatterns = [
@@ -11,4 +11,5 @@ urlpatterns = [
     path('product/<int:product_id>/review', ReviewView.as_view()),
     path('products/main_page_category', MainPageCategoryView.as_view()),
     path('products/list/<int:main_category_id>', ProductListView.as_view()),
+    path('product/<int:product_id>/location', LocationView.as_view())
 ]
