@@ -110,11 +110,11 @@ class ReviewView(View):
 
         reviews = Review.objects.select_related('user').prefetch_related('reviewimage_set')\
                     .order_by('-rating').filter(product_id=product_id)
-                
+    
         result = {
             'count'        : len(reviews),
-            'avg'          : round(reviews.aggregate(avg=Avg('rating'))['avg'],1) if reviews else 0,
-            'perfect_rate' : len(Review.objects.filter(rating=5)) / len(reviews) * 100 if reviews else 0,
+            'avg'          : float(round(reviews.aggregate(avg=Avg('rating'))['avg'],1)) if reviews else 0,
+            'perfect_rate' : len(Review.objects.filter(product_id=product_id, rating=5)) / len(reviews) * 100 if reviews else 0,
             'reviewer'     : [{
                 'user'    : review.user.nickname,
                 'profile' : review.user.image_url,
