@@ -1,3 +1,4 @@
+import json
 import jwt
 import boto3
 import requests
@@ -125,61 +126,42 @@ class ReviewView(View):
         return JsonResponse({'result' : result}, status = 200)
 
 class UserProductView(View):
-    s3_client = boto3.client(
-        's3',
-        aws_access_key_id     = AWS_ACCESS_KEY_ID,
-        aws_secret_access_key = AWS_SECRET_ACCESS_KEY
-    )
     @login_decorator
     @transaction.atomic
     def post(self, request, user_id):
         try:
+            data = json.loads(request.body)
             if not User.objects.filter(id=user_id).exists():
                 return JsonResponse({"ERROR" : "USER_DOESN'T_EXIST"}, status=400)
             
             if not User.objects.get(id=user_id).bank_account_id:
                 return JsonResponse({"ERROR" : "YOU'RE_NOT_A_HOST"}, status=400)
             
-            if not SubCategory.objects.filter(name=request.POST.get("sub_category")).exists():
+            if not SubCategory.objects.filter(name=data.get("sub_category")).exists():
                 return JsonResponse({"ERROR" : "SUBCATEGORY_DOES'NT_EXISTS"}, status=400)
 
-            final_price = int(float(request.POST.get("price")) * (1 - (float(request.POST.get("sale_percent")) / 100)))
+            final_price = int(float(data.get("price")) * (1 - (float(data.get("sale_percent")) / 100)))
             
             product = Product.objects.create(
-                title            = request.POST.get("title"),
+                title            = data.get("title"),
                 price            = final_price,
-                discount_percent = float(request.POST.get("sale_percent")),
-                sub_category_id  = SubCategory.objects.get(name=request.POST.get("sub_category")).id,
-                description      = request.POST.get("description"),
+                discount_percent = float(data.get("sale_percent")),
+                sub_category_id  = SubCategory.objects.get(name=data.get("sub_category")).id,
+                description      = data.get("description"),
                 user_id          = User.objects.get(id=user_id).id
             )
 
             Location.objects.create(
                 product_id = product.id,
-                address    = request.POST.get("playing_location")
+                address    = data.get("playing_location")
             )    
 
             GatherLocation.objects.create(
                 product_id = product.id,
-                address    = request.POST.get("gather_location")
+                address    = data.get("gather_location")
             )
 
-            image_list = request.FILES.getlist("image_url")
-            [self.s3_client.upload_fileobj(
-                image,
-                "flip-test2",
-                image.name,
-                ExtraArgs={
-                    "ContentType" : image.content_type
-                }
-            )for image in image_list]
-
-            [ProductImage.objects.create(
-                product_id = product.id,
-                image_url  = image.name
-            ) for image in image_list]
-
-            return JsonResponse({"MESSAGE" : "CREATE"}, status=200)
+            return JsonResponse({"ProductID" : product.id}, status=200)
         except Exception:
             transaction.rollback()
         except TypeError:
@@ -303,3 +285,47 @@ class LocationView(View):
 
         except IndexError:
             return JsonResponse({'MESSAGE' : 'WRONG_ADDRESS'}, status=401)            
+        return JsonResponse({'main_category_info' : main_category_info}, status=200)
+
+class ImageUploadView(View):
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id     = AWS_ACCESS_KEY_ID,
+        aws_secret_access_key = AWS_SECRET_ACCESS_KEY
+    )
+    @login_decorator
+    @transaction.atomic
+    def post(self, request, user_id, product_id):
+        try:
+            if not User.objects.filter(id=user_id).exists():
+                return JsonResponse({"ERROR" : "USER_DOESN'T_EXIST"}, status=400)
+            
+            if not User.objects.get(id=user_id).bank_account_id:
+                return JsonResponse({"ERROR" : "YOU'RE_NOT_A_HOST"}, status=400)
+            
+            product = Product.objects.get(id=product_id)
+
+            image_list = request.FILES.getlist("image_url")
+            [self.s3_client.upload_fileobj(
+                image,
+                "flip-test2",
+                image.name,
+                ExtraArgs={
+                    "ContentType" : image.content_type
+                }
+            )for image in image_list]
+
+            [ProductImage.objects.create(
+                product_id = product.id,
+                image_url  = image.name
+            ) for image in image_list]
+
+            return JsonResponse({"MESSAGE" : "CREATE"}, status=200)
+        except Exception:
+            transaction.rollback()
+        except TypeError:
+            return JsonResponse({"ERROR" : "TYPE_ERROR"}, status=400)
+        except KeyError:
+            return JsonResponse({"ERROR" : "KEY_ERROR"}, status=400)
+        except ValueError:
+            return JsonResponse({"ERROR" : "VALUE_ERROR"}, status=400)
