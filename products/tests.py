@@ -349,7 +349,7 @@ class CommentTest(TestCase):
                 'result': 
                 {
                     'count'        : 2, 
-                    'avg'          : '4.5', 
+                    'avg'          : 4.5, 
                     'perfect_rate' : 50.0, 
                     'reviewer'     : [
                         {
