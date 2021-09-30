@@ -44,8 +44,8 @@ class KakaoSignInView(View):
 
         return JsonResponse({"TOKEN": token}, status=200)
 
-@login_decorator
 class BankAccountView(View):
+    @login_decorator
     def post(self, request, user_id):
         try:
             data           = json.loads(request.body)
@@ -58,9 +58,8 @@ class BankAccountView(View):
             user         = User.objects.get(id=user_id)
             user_account = user.bank_account
 
-            for i in account_number:
-                if i == "-":
-                    return JsonResponse({"ERROR" : "DO_NOT_ENTER_STRING"}, status=400)
+            if "-" in account_number:
+                return JsonResponse({"ERROR" : "DO_NOT_ENTER_STRING"}, status=400)
 
             if not Bank.objects.filter(name=data["bank_name"]).exists(): 
                 return JsonResponse({"ERROR" : "BANK_DOES_NOT_EXIST"}, status=400)
