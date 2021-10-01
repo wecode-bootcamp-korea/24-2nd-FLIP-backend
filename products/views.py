@@ -208,7 +208,7 @@ class ProductListView(View):
             sub_category_id  = request.GET.get('sub_category_id', None)
             order            = request.GET.get('order', 'id')
 
-            if not Product.objects.filter(sub_category_id__main_category_id = main_category_id).exists():
+            if not MainCategory.objects.filter(id = main_category_id).exists():
                 return JsonResponse({'MESSAGE':'Non-Existing Main Category Info'}, status=404)
 
             q = Q()
