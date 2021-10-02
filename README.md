@@ -47,14 +47,24 @@
 
 `서동규`
 
-- 숙소 상세페이지
-  - React-slick 활용한 image slider 구현
-  - React-dates 기반 숙소 예약 탭 기능 구현
-  - 숙소 bookmark 기능
-  - Kakao map API 활용, 숙소 위치 로딩 및 마커 설정 기능
-- 회원가입 및 로그인
-  - Firebase 기반 Google social login 기능 구현
-  - Redux로 user 로그인 상태 글로벌 관리
+상품 장소 조회 API
+
+- kakao 지도 API를 활용해 좌표 조회 
+- timeout옵션을 사용해서 외부 API 서버 의존성을 줄임
+- 외부 서버 통신시 발생하는 모든 에러에 대한 테스트 코드 작성 
+- sideeffect를 활용해 requests 모듈의 다중 요청에 대한 테스트 코드 작성 
+
+상품 조회 API, 상품의 리뷰 조회 API
+
+- select_related, prefetch_related를 사용해서 ORM쿼리 호출 최적화 
+- 각 분기별 테스트 코드 작성 
+- RESTful한 엔드포인트 작성 
+- annotate분법을 활용해서 ORM쿼리문 작성 
+
+상품 좋아요 API
+- 로그인 데코레이터를 사용해서 API 접근 권한을 나누어줌 
+- 각 분기별 테스트 코드 작성 
+
 
 `성우진`
 
