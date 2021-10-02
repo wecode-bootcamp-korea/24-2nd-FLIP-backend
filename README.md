@@ -102,7 +102,7 @@
 
 ## Modeling
 
-<img src='./flip_log.png' alt='logo'>
+<img src='./FLIP_modeling_V3.png' alt='modeling'>
 
 ## 소감 및 후기
 
