@@ -102,7 +102,7 @@
 
 ## Modeling
 
-<img src='public/abb_model.png' alt='logo'>
+<img src='./flip_log.png' alt='logo'>
 
 ## 소감 및 후기
 
