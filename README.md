@@ -33,7 +33,7 @@
 ## 적용 기술
 
 - Back-end: Django, Python, MySQL, jwt, bcrypt, Storage, Transaction, AWS S3, AWS RDS, AWS EC2
-- 협업툴: Trello, Slack, Github(Rebase)
+- 협업툴: Trello, Slack, Github(Rebase), AQuery
 
 
 
@@ -60,14 +60,14 @@
 
 -
 
-`손명희`,
-
-- Oauth2 인증방식을 통한 Google Social login 구현 
-- queryString으로 동시에 여로 조건을 받아  field_lookup 을 통한 숙소검색 구현
-- check_availability 함수를 구현, 날짜별 숙소 예약 여부를 확인하고 숙소예약 생성 및 예약가능 일 조회
-- JWT -  Json Web token 을 사용해 로그인시 access token을 발행 하고 서버에서 access token을 복호화해 권한을 확인
-- BCRYPT - 회원가입시 단방향 암호화 해싱함수를 사용해 암호화된  비밀번호를 데이터베이스에 저장
-- Pagination - offset, limit 을 이용
+`손명희`
+- Kakao Social login 기능구현
+- JWT - access token을 발행 하고 서버에서 access token을 복호화해 권한을 확인
+- 계좌정보 등록 및 S3, transaction을 활용한 상품등록 기능구현
+- Soft Delete model 활용한 회원관리
+- REST API, POST/ GET 메소드를 통한 HTTP 통신
+- UNIT TEST를 통한 효율적인 테스트 구현
+- AWS deploy (EC2 / RDS / S3)
 
 
 ## EndPoint
@@ -96,7 +96,7 @@
 
 [get] BankAccountView          : /bank_account/<int:user_id>
 
-[get] ProductListView          : /products/list/<int:main_category_id>?sub_category_id=<>&order=<>
+[get] ProductListView          : /products/list/<int:main_category_id>?sub_category_id=&order=
 
 
 
@@ -108,9 +108,9 @@
 
 - 서동규: ([후기](https://업로드후수정.com)-개인 벨로그)
 
-- 성우진: [후기](https://업로드후수정.com)-개인 벨로그)
+- 성우진: ([후기](https://업로드후수정.com)-개인 벨로그)
 
-- 손명희: [후기](https://업로드후수정.com)-개인 벨로그)
+- 손명희: ([후기](https://업로드후수정.com)-개인 벨로그)
 
 
 ## 레퍼런스
