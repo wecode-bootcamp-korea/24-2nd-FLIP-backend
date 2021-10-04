@@ -71,14 +71,28 @@
 -
 
 `손명희`
-- Kakao Social login 기능구현
-- JWT - access token을 발행 하고 서버에서 access token을 복호화해 권한을 확인
-- 계좌정보 등록 및 S3, transaction을 활용한 상품등록 기능구현
-- Soft Delete model 활용한 회원관리
-- REST API, POST/ GET 메소드를 통한 HTTP 통신
-- UNIT TEST를 통한 효율적인 테스트 구현
-- AWS deploy (EC2 / RDS / S3)
 
+[카카오소셜로그인]
+
+- Kakao API를 통한 Social login 기능구현
+- Front로부터 받은 kakao access token을 POST 메소드를 통해 Kakao API로 전달하고
+  사용자가 수집에 동의한 개인정보를 전달 받아, 로그인에 성공한 사용자에게 token을 발행.
+- UNIT TEST를 통한 효율적인 테스트 구현
+
+[호스트 등록]
+
+- 로그인한 사용자의 계좌정보 등록 기능 구현(계좌번호, 은행정보)
+- UNIT TEST를 통한 효율적인 테스트 구현
+
+[호스트의 상품등록]
+
+- 계좌 정보를 등록한 사용자에 한해 상품을 등록할 수 있는 권한을 부여하여, 상품을 등록하도록 함.(상품 제목, 설명, 이미지, 모임장소, 진행장소 등 )
+- 상품 등록 시 AWS S3 bucket을 활용하여 상품의 이미지를 업로드 및 조회 하도록 함.
+- transaction을 활용한 상품등록 기능구현
+
+[AWS deploy (EC2 / RDS / S3)]
+
+<br>
 
 ## EndPoint
 
